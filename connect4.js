@@ -1,4 +1,11 @@
 "use strict";
+
+class Player {
+  constructor(color) {
+    this.color = color
+  }
+}
+
 /*
 * instance variables:
  - WIDTH
@@ -8,12 +15,14 @@
  */
 
 class Game {
-  constructor(HEIGHT, WIDTH) {
+  constructor(HEIGHT, WIDTH, player1, player2) {
     this.HEIGHT = HEIGHT;
     this.WIDTH = WIDTH;
     this.board = [];
-    this.currPlayer = 1;
-
+    this.currPlayer = player1;
+    this.currPlayersArray = [player1, player2];
+    this.gameOver = false;
+    
     this.makeBoard();
     this.makeHtmlBoard();
   }
@@ -32,6 +41,7 @@ class Game {
 
   makeHtmlBoard() {
     const boardDOM = document.getElementById('board');
+    boardDOM.innerHTML = '';
 
     // make column tops (clickable area for adding a piece to that column)
     const top = document.createElement('tr');
@@ -76,11 +86,18 @@ class Game {
   placeInTable(y, x) {
     const piece = document.createElement('div');
     piece.classList.add('piece');
-    piece.classList.add(`p${this.currPlayer}`);
+    piece.style.backgroundColor = this.currPlayer.color;
     piece.style.top = -50 * (y + 2);
 
     const spot = document.getElementById(`${y}-${x}`);
     spot.append(piece);
+  }
+
+  /** Remove event listener from top row  */
+
+  removeListener = () => {
+    const topRow = document.getElementById('column-top');
+    topRow.removeEventListener('click', this.handleClick);
   }
 
   /** endGame: announce game end */
@@ -92,6 +109,7 @@ class Game {
   /** handleClick: handle click of column top to play piece */
 
   handleClick = evt => {
+    if(this.gameOver) return;
     // get x from ID of clicked cell
     const x = +evt.target.id;
 
@@ -107,17 +125,24 @@ class Game {
 
     // check for win
     if (this.checkForWin()) {
-      return this.endGame(`Player ${this.currPlayer} won!`);
+      this.gameOver = true;
+      this.removeListener();
+      return this.endGame(`Player ${this.currPlayer === this.currPlayersArray[0] ? 
+        'one' : 'two'} won!`);
     }
 
     // check for tie
     //optimize by only looping through board[0]
-    if (this.board.every(row => row.every(cell => cell))) {
+    if (this.board[0].every(cell => cell)) {
+      this.gameOver = true;
+      this.removeListener();
       return this.endGame('Tie!');
     }
 
     // switch players
-    return this.currPlayer = this.currPlayer === 1 ? 2 : 1;
+    return this.currPlayer = this.currPlayer === this.currPlayersArray[0]
+     ? this.currPlayersArray[1] 
+     : this.currPlayersArray[0];
   };
 
   /** checkForWin: check board cell-by-cell for "does a win start here?" */
@@ -173,4 +198,16 @@ class Game {
 // makeBoard();
 // makeHtmlBoard();
 
-new Game(6, 7);
+const playerColorSelect = document.querySelector('form');
+
+// make top level
+playerColorSelect.addEventListener('submit', function() {
+  const p1color = document.getElementById('player1').value;
+  const p2color = document.getElementById('player2').value;
+
+  let player1 = new Player(p1color);
+  let player2 = new Player(p2color);
+  new Game(6,7,player1, player2)
+});
+
+
