@@ -93,13 +93,6 @@ class Game {
     spot.append(piece);
   }
 
-  /** Remove event listener from top row  */
-
-  removeListener = () => {
-    const topRow = document.getElementById('column-top');
-    topRow.removeEventListener('click', this.handleClick);
-  }
-
   /** endGame: announce game end */
 
   endGame(msg) {
@@ -126,7 +119,6 @@ class Game {
     // check for win
     if (this.checkForWin()) {
       this.gameOver = true;
-      this.removeListener();
       return this.endGame(`Player ${this.currPlayer === this.currPlayersArray[0] ? 
         'one' : 'two'} won!`);
     }
@@ -135,7 +127,6 @@ class Game {
     //optimize by only looping through board[0]
     if (this.board[0].every(cell => cell)) {
       this.gameOver = true;
-      this.removeListener();
       return this.endGame('Tie!');
     }
 
@@ -200,14 +191,17 @@ class Game {
 
 const playerColorSelect = document.querySelector('form');
 
-// make top level
-playerColorSelect.addEventListener('submit', function() {
+function startGame() {
   const p1color = document.getElementById('player1').value;
   const p2color = document.getElementById('player2').value;
 
   let player1 = new Player(p1color);
   let player2 = new Player(p2color);
-  new Game(6,7,player1, player2)
-});
+
+  new Game(6,7,player1, player2);
+}
+
+// make top level
+playerColorSelect.addEventListener('submit', startGame);
 
 
